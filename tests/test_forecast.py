@@ -161,8 +161,30 @@ def test_make_methods_names(params):
     names = [m.name for m in F.make_methods(params)]
     assert names == [
         "global_mean_curve", "global_median", "category_mean", "category_median",
-        "nearest_analogue", "analogues_k10", "gradient_boosting",
+        "nearest_analogue", "analogues_k10", "gradient_boosting", "gradient_boosting_calendar",
     ]
+
+
+def test_default_boosting_has_no_calendar_features():
+    seen = {}
+
+    class Spy(F.GradientBoosting):
+        def _model(self):
+            outer = self
+
+            class M:
+                def fit(self, x, y):
+                    seen[outer.name] = x.shape[1]
+                    return self
+
+            return M()
+
+    rows = [(f"P{i}", f"ITEM {i}", "other", 1.0 + i, "2010-06-01", 10 + i) for i in range(6)]
+    data = launch_data(rows)
+    Spy(["other"], 2, 0.25, 1).fit(data)
+    Spy(["other"], 2, 0.25, 1, calendar=True).fit(data)
+    # 8 attribute features + 2 analogue features with the calendar, 2 fewer without
+    assert seen == {"gradient_boosting": 8, "gradient_boosting_calendar": 10}
 
 
 # ------------------------------------------------------------------ Bass

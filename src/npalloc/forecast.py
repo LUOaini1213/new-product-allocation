@@ -201,19 +201,29 @@ class Analogue(Method):
         return np.median(self.y[nn], axis=1)
 
 
+CALENDAR_FEATURES = ("month", "days_to_xmas")
+
+
 class GradientBoosting(Method):
     """F5: gradient boosting on log(1+units) from launch attributes plus two
     analogue features (median log units of the k nearest training launches and
-    the distance to the nearest one; leave-one-out on the training rows)."""
+    the distance to the nearest one; leave-one-out on the training rows).
 
-    name = "gradient_boosting"
+    ``calendar=False`` (the default model) leaves out the launch month and the
+    days to Christmas: at every origin the training launches span less than
+    one year, so a calendar effect cannot be learned for months not yet seen.
+    ``calendar=True`` is kept as a recorded comparison.
+    """
 
-    def __init__(self, categories: list[str], k: int, price_weight: float, seed: int, quantile: float | None = None):
+    def __init__(self, categories: list[str], k: int, price_weight: float, seed: int,
+                 quantile: float | None = None, calendar: bool = False):
         self.categories = categories
         self.k = k
         self.price_weight = price_weight
         self.seed = seed
         self.quantile = quantile
+        self.calendar = calendar
+        self.name = "gradient_boosting_calendar" if calendar else "gradient_boosting"
 
     def _model(self):
         kw = dict(
@@ -227,6 +237,8 @@ class GradientBoosting(Method):
 
     def _features(self, meta: pd.DataFrame, d: np.ndarray) -> np.ndarray:
         x = attribute_features(meta, self.categories)
+        if not self.calendar:
+            x = x.drop(columns=list(CALENDAR_FEATURES))
         nn = nearest(d, self.k)
         x["knn_log_median"] = np.median(self.logy[nn], axis=1)
         x["knn_dist1"] = np.take_along_axis(d, nn[:, :1], axis=1)[:, 0]
@@ -258,6 +270,7 @@ def make_methods(params: dict) -> list[Method]:
         Analogue(1, f["price_weight"]),
         Analogue(f["analogue_k"], f["price_weight"]),
         GradientBoosting(cats, f["analogue_k"], f["price_weight"], f["seed"]),
+        GradientBoosting(cats, f["analogue_k"], f["price_weight"], f["seed"], calendar=True),
     ]
 
 
@@ -265,7 +278,8 @@ def make_methods(params: dict) -> list[Method]:
 
 
 def cv_log_residuals(method: Method, train: LaunchData, folds: int, seed: int) -> np.ndarray:
-    """F6: out-of-fold residuals log(1+y) - log(1+yhat) inside the training set."""
+    """Random-fold out-of-fold residuals inside the training set (kept only for the
+    recorded comparison with the forward-chaining rule E2)."""
     n = len(train)
     rng = np.random.default_rng(seed)
     perm = rng.permutation(n)
@@ -277,6 +291,27 @@ def cv_log_residuals(method: Method, train: LaunchData, folds: int, seed: int) -
         m = method.fit(train.take(~te))
         res[te] = np.log1p(train.total[te]) - np.log1p(m.predict(train.take(te)))
     return res
+
+
+def forward_blocks(n: int, blocks: int, min_train_blocks: int) -> list[tuple[np.ndarray, np.ndarray]]:
+    """E2: forward-chaining splits of rows 0..n-1 (already in launch order).
+
+    The rows are cut into ``blocks`` contiguous chunks; chunk b is predicted
+    from all earlier chunks, for b = min_train_blocks .. blocks-1.
+    """
+    chunks = np.array_split(np.arange(n), blocks)
+    return [(np.concatenate(chunks[:b]), chunks[b]) for b in range(min_train_blocks, blocks)]
+
+
+def forward_log_residuals(method: Method, train: LaunchData, blocks: int, min_train_blocks: int) -> tuple[np.ndarray, np.ndarray]:
+    """E2/F6: residuals log(1+y) - log(1+yhat) of launches predicted from strictly
+    earlier rows of the training set. Returns (residuals, row indices validated)."""
+    res, rows = [], []
+    for tr, va in forward_blocks(len(train), blocks, min_train_blocks):
+        m = method.fit(train.take(tr))
+        res.append(np.log1p(train.total[va]) - np.log1p(m.predict(train.take(va))))
+        rows.append(va)
+    return np.concatenate(res), np.concatenate(rows)
 
 
 def conformal_quantiles(residuals: np.ndarray, coverage: float) -> tuple[float, float]:

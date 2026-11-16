@@ -42,6 +42,8 @@
     "category_min_count": 10,
     "analogue_k": 10,
     "price_weight": 0.25,
+    "forward_blocks": 6,
+    "forward_min_train_blocks": 3,
     "cv_folds": 5,
     "seed": 20261115,
     "pi_coverage": 0.8,

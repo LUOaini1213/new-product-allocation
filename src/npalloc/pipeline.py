@@ -28,6 +28,8 @@ def load_launch_data(root: Path, params: dict) -> F.LaunchData:
     meta = pd.read_csv(root / "data" / "derived" / "launches.csv", dtype={"code": str}, keep_default_na=False)
     meta["launch_day"] = pd.to_datetime(meta["launch_day"])
     meta = meta.set_index("code")
+    if not meta["launch_day"].is_monotonic_increasing:
+        raise ValueError("launches.csv must be sorted by launch day (forward-chaining relies on it)")
     wk = pd.read_csv(root / "data" / "derived" / "launch_weekly.csv", dtype={"code": str})
     arr = np.zeros((len(meta), horizon, len(names)), dtype=np.int64)
     pos = {c: i for i, c in enumerate(meta.index)}
@@ -68,8 +70,8 @@ def split(data: F.LaunchData, origin: pd.Timestamp, horizon_weeks: int) -> tuple
 
 
 def select_by_cv(cv_male: dict[str, float]) -> str:
-    """E2: the method with the lowest out-of-fold error on the training launches
-    (ties: first in the dictionary's order)."""
+    """E2: the method with the lowest validation error on the training launches
+    (ties: first in the dictionary order)."""
     best = None
     for name, v in cv_male.items():
         if best is None or v < cv_male[best]:
@@ -103,8 +105,13 @@ class PostModel:
         raise KeyError(method)
 
 
-def fit_post_model(train: F.LaunchData, k: int, horizon: int, prior_cv: np.ndarray, prior_res: np.ndarray) -> PostModel:
-    """Fit everything the post-launch updates need from training launches only."""
+def fit_post_model(train: F.LaunchData, k: int, horizon: int, prior_val: np.ndarray, prior_res: np.ndarray, rows: np.ndarray) -> PostModel:
+    """Fit everything the post-launch updates need from training launches only.
+
+    ``rows`` are the training launches that have a forward-chaining pre-launch
+    forecast ``prior_val`` (with residuals ``prior_res``); the method choice and
+    the calibration residuals use those launches only.
+    """
     weekly = train.weekly.astype(float)
     total = weekly.sum(axis=1)
     cum = np.cumsum(weekly, axis=1) / total[:, None]
@@ -115,10 +122,10 @@ def fit_post_model(train: F.LaunchData, k: int, horizon: int, prior_cv: np.ndarr
     data_err = np.log(np.maximum(sold, 1.0) * fh / fk) - np.log(np.maximum(total, 1.0))
     w = bass.precision_weight(float(np.var(prior_res)), float(np.var(data_err)))
     model = PostModel(k, p, q, ratio, w, "curve_ratio", np.zeros(1))
-    rem = total - sold
-    errs = {m: M.male(rem, model.predict(m, sold, prior_cv, horizon)) for m in POST_METHODS}
+    rem, sold_v = (total - sold)[rows], sold[rows]
+    errs = {m: M.male(rem, model.predict(m, sold_v, prior_val, horizon)) for m in POST_METHODS}
     model.selected = select_by_cv(errs)
-    model.residuals = np.sort(np.log1p(rem) - np.log1p(model.predict(model.selected, sold, prior_cv, horizon)))
+    model.residuals = np.sort(np.log1p(rem) - np.log1p(model.predict(model.selected, sold_v, prior_val, horizon)))
     return model
 
 
@@ -128,7 +135,7 @@ class OriginModel:
     train: F.LaunchData
     test_idx: np.ndarray
     selected: str
-    residuals: np.ndarray                # sorted out-of-fold log residuals of the selected method
+    residuals: np.ndarray                # sorted forward-chaining log residuals of the selected method
     index: F.AnalogueIndex               # fit on training descriptions/prices
     post: dict[int, PostModel] = field(default_factory=dict)
 
@@ -150,11 +157,14 @@ def evaluate_forecasts(data: F.LaunchData, params: dict, progress=None) -> tuple
         train, test = data.take(tr_mask), data.take(te_mask)
         if progress:
             progress(f"origin {origin:%Y-%m}: train {len(train)}, test {len(test)}")
-        preds, pis, cv_male, cv_res = {}, {}, {}, {}
+        preds, pis, val_male, val_res, cv_male, cv_res = {}, {}, {}, {}, {}, {}
+        val_rows = None
         for m in F.make_methods(params):
-            res = F.cv_log_residuals(m, train, fp["cv_folds"], fp["seed"])
-            cv_res[m.name] = res
-            cv_male[m.name] = float(np.mean(np.abs(res)))
+            res, val_rows = F.forward_log_residuals(m, train, fp["forward_blocks"], fp["forward_min_train_blocks"])
+            val_res[m.name] = res
+            val_male[m.name] = float(np.mean(np.abs(res)))
+            cv_res[m.name] = F.cv_log_residuals(m, train, fp["cv_folds"], fp["seed"])
+            cv_male[m.name] = float(np.mean(np.abs(cv_res[m.name])))
             m.fit(train)
             preds[m.name] = m.predict(test)
             q_lo, q_hi = F.conformal_quantiles(res, cov)
@@ -165,17 +175,21 @@ def evaluate_forecasts(data: F.LaunchData, params: dict, progress=None) -> tuple
             g = F.GradientBoosting(cats, fp["analogue_k"], fp["price_weight"], fp["seed"], quantile=qt).fit(train)
             gq.append(np.maximum(np.expm1(g.predict_log(test)), 0.0))
         pis["gradient_boosting_quantile"] = (np.minimum(gq[0], gq[1]), np.maximum(gq[0], gq[1]))
-        selected = select_by_cv(cv_male)
+        selected = select_by_cv(val_male)
         preds["selected"] = preds[selected]
         pis["selected"] = pis[selected]
+        # recorded comparison: what random-fold cross-validation would have chosen and promised
+        sel_cv = select_by_cv(cv_male)
+        preds["selected_random_cv"] = preds[sel_cv]
+        pis["selected_random_cv"] = F.interval(preds[sel_cv], *F.conformal_quantiles(cv_res[sel_cv], cov))
         om = OriginModel(
-            origin, train, np.flatnonzero(te_mask), selected, np.sort(cv_res[selected]),
+            origin, train, np.flatnonzero(te_mask), selected, np.sort(val_res[selected]),
             F.AnalogueIndex(fp["price_weight"]).fit(train.meta),
         )
-        prior_cv = np.expm1(np.log1p(train.total) - cv_res[selected])
+        prior_val = np.expm1(np.log1p(train.total[val_rows]) - val_res[selected])
         post_pred = {}
         for k in fp["post_launch_weeks"]:
-            pm = fit_post_model(train, k, horizon, prior_cv, cv_res[selected])
+            pm = fit_post_model(train, k, horizon, prior_val, val_res[selected], val_rows)
             om.post[k] = pm
             sold = test.weekly[:, :k].sum(axis=1)
             for name in POST_METHODS:
@@ -185,14 +199,16 @@ def evaluate_forecasts(data: F.LaunchData, params: dict, progress=None) -> tuple
         origin_log.append(
             {
                 "origin": origin.strftime("%Y-%m-%d"), "train": int(len(train)), "test": int(len(test)),
-                "selected": selected, "cv_male": cv_male,
+                "selected": selected, "validation_male": val_male, "validated_launches": int(len(val_rows)),
+                "selected_random_cv": sel_cv, "random_cv_male": cv_male,
                 "post": {str(k): {"p": pm.p, "q": pm.q, "ratio": pm.ratio, "weight": pm.weight, "selected": pm.selected}
                          for k, pm in om.post.items()},
             }
         )
         for j, code in enumerate(test.meta.index):
-            row = {"code": code, "origin": origin.strftime("%Y-%m-%d"), "actual": int(test.total[j]), "selected_method": selected}
-            for name in method_names + ["selected"]:
+            row = {"code": code, "origin": origin.strftime("%Y-%m-%d"), "actual": int(test.total[j]),
+                   "selected_method": selected, "selected_method_random_cv": sel_cv}
+            for name in method_names + ["selected", "selected_random_cv"]:
                 row[f"f_{name}"] = float(preds[name][j])
             for name, (lo, hi) in pis.items():
                 row[f"lo_{name}"] = float(lo[j])
@@ -237,9 +253,9 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
     actual = table["actual"].to_numpy(dtype=float)
     n = len(table)
     idx = M.bootstrap_indices(n, fp["bootstrap_reps"], fp["seed"])
-    fc = {name: table[f"f_{name}"].to_numpy() for name in method_names + ["selected"]}
+    fc = {name: table[f"f_{name}"].to_numpy() for name in method_names + ["selected", "selected_random_cv"]}
     pre = _metric_block(actual, fc, idx)
-    simple = [m for m in method_names if m != "gradient_boosting"]
+    simple = [m for m in method_names if not m.startswith("gradient_boosting")]
     best_simple = min(simple, key=lambda m: pre[m]["male"])
     best_simple_wape = min(simple, key=lambda m: pre[m]["wape"])
     comparisons = {
@@ -248,6 +264,9 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
         "gradient_boosting_vs_best_simple_by_male": _paired(actual, fc["gradient_boosting"], fc[best_simple], idx),
         "gradient_boosting_vs_best_simple_by_wape": _paired(actual, fc["gradient_boosting"], fc[best_simple_wape], idx),
         "gradient_boosting_vs_global_median": _paired(actual, fc["gradient_boosting"], fc["global_median"], idx),
+        "calendar_vs_no_calendar_boosting": _paired(actual, fc["gradient_boosting_calendar"], fc["gradient_boosting"], idx),
+        "selected_vs_selected_random_cv": _paired(actual, fc["selected"], fc["selected_random_cv"], idx),
+        "selected_vs_best_simple_by_male": _paired(actual, fc["selected"], fc[best_simple], idx),
         "analogues_vs_global_median": _paired(actual, fc[f"analogues_k{fp['analogue_k']}"], fc["global_median"], idx),
         "nearest_analogue_vs_global_median": _paired(actual, fc["nearest_analogue"], fc["global_median"], idx),
         "selected_vs_global_median": _paired(actual, fc["selected"], fc["global_median"], idx),
@@ -279,6 +298,7 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
             "remaining_units": float(rem.sum()),
         }
     sel_counts = table.groupby("selected_method").size()
+    sel_counts_cv = table.groupby("selected_method_random_cv").size()
     return {
         "params": fp,
         "horizon_weeks": params["data"]["horizon_weeks"],
@@ -291,4 +311,5 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
         "interval_coverage": coverage,
         "post_launch": post,
         "selected_method_launches": {k: int(v) for k, v in sel_counts.items()},
+        "selected_method_launches_random_cv": {k: int(v) for k, v in sel_counts_cv.items()},
     }
