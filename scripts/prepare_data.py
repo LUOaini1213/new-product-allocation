@@ -5,7 +5,7 @@ Usage (from the repository root, after scripts/fetch_data.py):
 
 Steps
 1. parse the workbook once into data/interim/raw_rows.csv.gz;
-2. apply the cleaning rules (C0-C4) -> data/interim/lines.csv.gz;
+2. apply the cleaning rules (C0-C4) in memory;
 3. identify launches and write the small committed extracts to data/derived/
    plus results/data_summary.json and results/launches.json.
 """

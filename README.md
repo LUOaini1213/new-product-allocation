@@ -40,7 +40,7 @@ A launch is a product code first sold on or after 2010-06-01 (the first months a
 | Rejected: successor of a phased-out code (L5) | 0 |
 | Launches | 822 |
 
-Launch curves are weekly units per channel for weeks 1-12. Median launch: 468 units (10th to 90th percentile 35 to 2,160), median launch price GBP 2.08.
+Launch curves are weekly units per channel for weeks 1-12. Median launch: 468 units (10th to 90th percentile 35 to 2,160), median launch price GBP 2.08. The average curve is front-loaded: week 1 holds 17.5% of a launch's 12-week units and the first 4 weeks 43.5%.
 
 ## A. Pre-launch forecast
 

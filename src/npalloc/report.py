@@ -415,7 +415,9 @@ def render_readme(res: dict) -> str:
         ]),
         "",
         f"Launch curves are weekly units per channel for weeks 1-{ln['params']['horizon_weeks']}. Median launch: {num(ln['units_12w']['median'])} units "
-        f"(10th to 90th percentile {num(ln['units_12w']['p10'])} to {num(ln['units_12w']['p90'])}), median launch price GBP {ln['median_launch_price']:.2f}.",
+        f"(10th to 90th percentile {num(ln['units_12w']['p10'])} to {num(ln['units_12w']['p90'])}), median launch price GBP {ln['median_launch_price']:.2f}. "
+        f"The average curve is front-loaded: week 1 holds {pct(fc['launch_curve']['mean_weekly_share'][0])} of a launch's {ln['params']['horizon_weeks']}-week units "
+        f"and the first {fc['params']['post_launch_weeks'][-1]} weeks {pct(fc['launch_curve']['mean_cumulative_share'][fc['params']['post_launch_weeks'][-1] - 1])}.",
         "",
         "## A. Pre-launch forecast",
         "",

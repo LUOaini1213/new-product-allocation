@@ -28,6 +28,15 @@ def test_split_has_no_leakage():
     assert not (train & test).any()
 
 
+def test_launch_curve_summary():
+    data = launch_data([("A", "X", "c", 1.0, "2010-06-01", 0), ("B", "Y", "c", 1.0, "2010-06-02", 0)],
+                       weekly=[[5, 5, 0, 0], [1, 0, 0, 3]])
+    got = P.launch_curve_summary(data)
+    assert got["launches"] == 2
+    assert got["mean_weekly_share"] == [0.375, 0.25, 0.0, 0.375]        # mean of (.5,.5,0,0) and (.25,0,0,.75)
+    assert got["mean_cumulative_share"] == [0.375, 0.625, 0.625, 1.0]
+
+
 def test_origins_cover_every_test_month(params):
     data = dated(["2010-06-01", "2011-01-15", "2011-03-02"])
     got = [o.strftime("%Y-%m-%d") for o in P.origins(data, params)]

@@ -50,6 +50,18 @@ def load_history_shares(root: Path, params: dict, origin: pd.Timestamp) -> np.nd
     return units / units.sum()
 
 
+def launch_curve_summary(data: F.LaunchData) -> dict:
+    """L6: average launch curve = mean over launches of each week's share of the launch's own total."""
+    weekly = data.weekly.astype(float)
+    share = weekly / weekly.sum(axis=1, keepdims=True)
+    mean_share = share.mean(axis=0)
+    return {
+        "launches": int(len(data)),
+        "mean_weekly_share": [float(x) for x in mean_share],
+        "mean_cumulative_share": [float(x) for x in np.cumsum(mean_share)],
+    }
+
+
 def origins(data: F.LaunchData, params: dict) -> list[pd.Timestamp]:
     start = pd.Timestamp(params["forecast"]["test_start"])
     last = data.meta["launch_day"].max()
@@ -221,6 +233,7 @@ def evaluate_forecasts(data: F.LaunchData, params: dict, progress=None) -> tuple
     table = pd.DataFrame(rows)
     results = summarise_forecasts(table, params, method_names)
     results["origins"] = origin_log
+    results["launch_curve"] = launch_curve_summary(data)
     shapes = [pm for o in origin_log for pm in o["post"].values()]
     results["bass_shape"] = {
         "p_min": min(s["p"] for s in shapes), "p_max": max(s["p"] for s in shapes),

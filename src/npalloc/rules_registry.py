@@ -43,8 +43,9 @@ RULES = [
          params=["data.succession_jaccard_min", "data.succession_price_ratio_max", "data.succession_gap_days"], tests=["test_launches.py::test_flag_succession"],
          affects=["launches.json:funnel.rejected_succession", "launches.json:funnel.launches"]),
     dict(id="L6", group="Launch identification", statement="Week 1 is the launch day plus six days; the launch price is the median unit price in week 1; the case-pack proxy is the most frequent line quantity inside the horizon (ties: the smallest).",
-         params=["data.horizon_weeks"], tests=["test_launches.py::test_week_index_boundaries", "test_launches.py::test_launch_attributes_and_curves", "test_launches.py::test_modal_value_tie_goes_to_smallest"],
-         affects=["launches.json:units_12w.median", "launches.json:median_launch_price"]),
+         params=["data.horizon_weeks"], tests=["test_launches.py::test_week_index_boundaries", "test_launches.py::test_launch_attributes_and_curves", "test_launches.py::test_modal_value_tie_goes_to_smallest",
+                "test_pipeline.py::test_launch_curve_summary"],
+         affects=["launches.json:units_12w.median", "launches.json:median_launch_price", "forecast.json:launch_curve.mean_weekly_share"]),
     # --------------------------------------------------------- forecast
     dict(id="E1", group="Forecast evaluation", statement="Rolling origin by calendar month: a launch may be used for training only if its whole horizon ended on or before the first day of the test month; test launches are those first sold in that month.",
          params=["forecast.test_start", "data.horizon_weeks"], tests=["test_pipeline.py::test_split_has_no_leakage", "test_pipeline.py::test_origins_cover_every_test_month"],
