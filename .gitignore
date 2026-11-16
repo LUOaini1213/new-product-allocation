@@ -1,0 +1,15 @@
+# local environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# raw and intermediate data are never committed (fetch with scripts/fetch_data.py)
+data/raw/
+data/interim/
+
+# scratch output from the mutation harness
+.mutation_work/

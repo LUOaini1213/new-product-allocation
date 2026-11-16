@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npalloc"
+version = "0.1.0"
+description = "New-product forecasting and channel allocation on public retail data"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "slow: re-runs the full pipeline from data/derived (minutes)",
+]
+addopts = "-p no:cacheprovider"
