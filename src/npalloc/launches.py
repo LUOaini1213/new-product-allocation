@@ -65,8 +65,8 @@ def flag_same_description(prod: pd.DataFrame) -> pd.Series:
     """L4: the modal description equals that of a different code sold strictly earlier."""
     named = prod[prod["norm_desc"] != ""]
     earliest_desc = named.groupby("norm_desc")["first_day"].transform("min")
-    flag = named["first_day"] > earliest_desc
-    return flag.reindex(prod.index).fillna(False).astype(bool)
+    flagged = named.index[named["first_day"] > earliest_desc]
+    return pd.Series(prod.index.isin(flagged), index=prod.index)
 
 
 def flag_succession(

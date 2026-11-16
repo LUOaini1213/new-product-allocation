@@ -288,8 +288,8 @@ def conformal_quantiles(residuals: np.ndarray, coverage: float) -> tuple[float, 
     r = np.sort(np.asarray(residuals, dtype=float))
     n = len(r)
     a = (1.0 - coverage) / 2.0
-    lo_rank = int(np.floor((n + 1) * a))          # 1-based rank
-    hi_rank = int(np.ceil((n + 1) * (1.0 - a)))
+    lo_rank = int(np.floor((n + 1) * a + 1e-9))   # 1-based rank; 1e-9 guards 20 * 0.1 = 1.999...
+    hi_rank = int(np.ceil((n + 1) * (1.0 - a) - 1e-9))
     lo = r[max(lo_rank, 1) - 1]
     hi = r[min(hi_rank, n) - 1]
     return float(lo), float(hi)
