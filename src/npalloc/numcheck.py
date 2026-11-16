@@ -19,7 +19,7 @@ URL_RE = re.compile(r"https?://[^\s)>\]]+")
 DATE_RE = re.compile(r"(?<![0-9A-Za-z])\d{4}-\d{2}-\d{2}(?![0-9A-Za-z])")
 HASH_RE = re.compile(r"\b[0-9a-f]{64}\b")
 # a number not glued to a letter, underscore or another number part (so "A1", "k10", "v2" are not numbers)
-NUM_RE = re.compile(r"(?<![0-9A-Za-z_.])[-+−]?\d[\d,]*(?:\.\d+)?(?![0-9A-Za-z_])(\s?(?:%|pp\b))?")
+NUM_RE = re.compile(r"(?<![0-9A-Za-z_.])[-+−]?\d[\d,]*(?:\.\d+)?(?![0-9A-Za-z_]|\.\d)(\s?(?:%|pp\b))?")
 STR_NUM_RE = re.compile(r"\d+(?:\.\d+)?")
 
 

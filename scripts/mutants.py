@@ -105,7 +105,7 @@ MUTANTS = [
     ("b4_fill_rate_denominator", "backtest.py", '"fill_rate": float(a["sales"].sum() / a["demand"].sum()),', '"fill_rate": float(a["sales"].sum() / stock.sum()),', "B4"),
     ("b4_stranded_includes_dc", "backtest.py", '"stranded_share_of_stock": float(a["left_channel"].sum() / stock.sum()),', '"stranded_share_of_stock": float((a["left_channel"].sum() + a["left_dc"].sum()) / stock.sum()),', "B4"),
     ("a3_rule_switch", "backtest.py", 'max_share=float(ap["max_share"]) if use_max else 1.0', 'max_share=float(ap["max_share"]) if not use_max else 1.0', "A3"),
-    ("a2_priority_order_dropped", "backtest.py", "            order.append(names.index(ch))\n", "", "A2"),
+    ("a2_priority_order_dropped", "backtest.py", '            order.append(names.index(entry["name"]))\n', "", "A2"),
     ("b4_gain_sign", "backtest.py", 'dv = a["value"] - ref["value"]', 'dv = ref["value"] - a["value"]', "B4"),
     # ---------------------------------------------------------------- numcheck
     ("numcheck_percent_always", "numcheck.py", "if pct and abs(round(100.0 * a, decimals) - value) <= tol:", "if abs(round(100.0 * a, decimals) - value) <= tol:", "docs"),

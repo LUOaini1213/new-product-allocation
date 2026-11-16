@@ -71,6 +71,10 @@ def ci(pair, d: int = 3) -> str:
     return f"[{pair[0]:.{d}f}, {pair[1]:.{d}f}]"
 
 
+def ci_share(pair, d: int = 1) -> str:
+    return f"[{100.0 * pair[0]:.{d}f}%, {100.0 * pair[1]:.{d}f}%]"
+
+
 def ci_pct(pair, d: int = 1) -> str:
     return f"[{100.0 * pair[0]:+.{d}f}%, {100.0 * pair[1]:+.{d}f}%]"
 
@@ -146,7 +150,7 @@ def headline_rows(res: dict) -> list[list[str]]:
         ["Gradient boosting, MALE", f"{pre['gradient_boosting']['male']:.3f} {ci(pre['gradient_boosting']['male_ci'])} ({f['gbm_vs_best']} vs the best simple method)",
          "`results/forecast.json` pre_launch.gradient_boosting.male"],
         [f"{pct(cov['nominal'], 0)} prediction interval, coverage on held-out launches",
-         f"{pct(cov['coverage'])} {ci(cov['wilson_ci'])}", "`results/forecast.json` interval_coverage.selected"],
+         f"{pct(cov['coverage'])} {ci_share(cov['wilson_ci'])}", "`results/forecast.json` interval_coverage.selected"],
         [f"After {k} weeks of sales: Bass + prior vs curve ratio, MALE of remaining demand",
          f"{fc['post_launch'][k]['methods']['bass_bayes']['male']:.3f} vs {fc['post_launch'][k]['methods']['curve_ratio']['male']:.3f}",
          f"`results/forecast.json` post_launch.{k}.methods"],
@@ -209,7 +213,7 @@ def interval_section(res: dict) -> str:
     rows = []
     for m in order:
         c = cov[m]
-        rows.append([label[m], f"{num(c['covered'])} / {num(c['n'])}", f"{pct(c['coverage'])} {ci(c['wilson_ci'])}",
+        rows.append([label[m], f"{num(c['covered'])} / {num(c['n'])}", f"{pct(c['coverage'])} {ci_share(c['wilson_ci'])}",
                      "yes" if c["nominal_inside_ci"] else "no", f"{c['median_width_ratio']:.1f}"])
     nominal = pct(fc["params"]["pi_coverage"], 0)
     lines = [
@@ -271,7 +275,7 @@ def allocation_section(res: dict) -> str:
     ap, pol, ctx, mc, rc = al["params"], al["policies"], al["context"], al["mip_check"], al["rule_cost"]
     names = al["channels"]
     ship = ", ".join(f"{n} {pct(ap['ship_cost'][n], 0)}" for n in names)
-    mins = ", ".join(f"{k} {v}" for k, v in ap["priority_min_cases"].items())
+    mins = ", then ".join(f"{e['name']} {e['min_cases']}" for e in ap["priority_channels"])
     rows = []
     for p in ["proportional", "newsvendor_ship_all", "newsvendor", "proportional_two_stage", "newsvendor_two_stage", "oracle"]:
         b = pol[p]
@@ -297,7 +301,7 @@ def allocation_section(res: dict) -> str:
         f"minimum cases for priority channels, in this order: {mins} (A2); at most {pct(ap['max_share'], 0)} of the stock to one channel (A3).",
         "",
         f"The expected value is separable and concave in whole cases, so marginal (greedy) allocation is optimal. The same scenario problem solved as a MIP with HiGHS "
-        f"gives the same objective on {num(mc['objective_agree'])} of {num(mc['launches'])} held-out launches (largest relative gap {mc['max_relative_gap']:.1e}; "
+        f"gives the same objective on {num(mc['objective_agree'])} of {num(mc['launches'])} held-out launches (largest relative gap `{mc['max_relative_gap']:.1e}`; "
         f"the allocation itself is identical on {num(mc['identical_allocation'])}, the rest are ties). Unit tests add brute-force enumeration as a third check.",
         "",
         f"Back-test against the demand that actually occurred, replayed week by week (lost sales, no backorders). Across the {num(ctx['launches'])} launches "
@@ -333,7 +337,8 @@ def allocation_section(res: dict) -> str:
         "",
         f"Cost of the business rules (newsvendor, realised value, relative to no A2/A3 rules): minimum only {spct(rc['minimum_only']['cost_vs_no_rules'], 2)} "
         f"(GBP {rc['minimum_only']['cost_per_launch']:.2f} per launch); maximum share only {spct(rc['max_share_only']['cost_vs_no_rules'], 2)}; both {spct(rc['both_rules']['cost_vs_no_rules'], 2)}. "
-        "A negative cost means the rule raised realised value in this back-test: the cap leaves cases at the DC that the over-confident scenarios would have shipped.",
+        f"A negative cost means the rule raised realised value in this back-test: with the cap the newsvendor allocation leaves {num(rc['max_share_only']['newsvendor_left_dc_units'])} units at the DC "
+        f"against {num(rc['no_rules']['newsvendor_left_dc_units'])} without any rule, and DC stock is valued above stranded stock.",
         "",
         "Sensitivity (one parameter changed at a time; value gain vs proportional allocation):",
         "",
@@ -501,6 +506,8 @@ def fmt_param(path: str, params: dict) -> str:
     if isinstance(v, (dict, list)):
         if isinstance(v, dict) and all(not isinstance(x, (dict, list)) for x in v.values()):
             return f"`{path}` = " + ", ".join(f"{k} {x}" for k, x in v.items())
+        if isinstance(v, list) and v and all(isinstance(x, dict) and set(x) == {"name", "min_cases"} for x in v):
+            return f"`{path}` = " + ", then ".join(f"{x['name']} {x['min_cases']}" for x in v)
         return f"`{path}` (list in `config/params.json`)"
     return f"`{path}` = {v}"
 
@@ -554,7 +561,8 @@ def render_brief(res: dict) -> str:
         "",
         f"**Question.** For a new product, how many units will sell in the first {fc['horizon_weeks']} weeks, and how should the first batch be split across {len(al['channels'])} channels?",
         "",
-        f"**Evidence.** {num(ln['funnel']['launches'])} launches identified in public retail data; {num(fc['test_launches'])} held out by launch month and never used for fitting.",
+        f"**Evidence.** {num(ln['funnel']['launches'])} launches identified in public retail data; {num(fc['test_launches'])} of them are forecast out of time, "
+        f"each one only from launches whose {fc['horizon_weeks']} weeks had already ended before its launch month.",
         "",
         "**Recommendations.**",
         "",
@@ -565,7 +573,7 @@ def render_brief(res: dict) -> str:
         f"- Re-forecast as soon as {kf} weeks of sales exist: MALE of remaining demand falls from {post['prelaunch_only']['male']:.3f} (no update) to {post['bass_bayes']['male']:.3f} (Bass curve with the pre-launch forecast as prior); "
         f"the plain curve ratio gives {post['curve_ratio']['male']:.3f}.",
         f"- Split the first batch by expected marginal value rather than by historical share: {spct(nv['value_gain_vs_proportional'], 2)} value {ci_pct(nv['value_gain_ci'], 2)} with the same stock and the same business rules. "
-        "The gain is small because one channel dominates demand.",
+        f"The gain is small: one channel holds {pct(al['context']['demand_share'][al['channels'][0]])} of demand, so there is little to re-split.",
         f"- Keep {pct(ap['reserve_fraction'], 0)} of the batch at the DC and release it after week {ap['review_week']}: {spct(two['value_gain_vs_proportional'])} value and {spct(two['stranded_change_vs_proportional'])} stock stranded in channels, "
         f"at the price of a fill rate of {pct(two['fill_rate'])} instead of {pct(prop['fill_rate'])}."
         + (f" If DC stock is worth no more than stranded stock the value gain is only {spct(dc_eq['newsvendor_two_stage']['value_gain_vs_proportional'], 2)}." if dc_eq else ""),
@@ -577,14 +585,14 @@ def render_brief(res: dict) -> str:
         "",
         f"**问题。** 新品上市后前 {fc['horizon_weeks']} 周能卖多少？首批库存如何在 {len(al['channels'])} 个渠道之间分配？",
         "",
-        f"**依据。** 在公开零售数据中识别出 {num(ln['funnel']['launches'])} 个新品，其中 {num(fc['test_launches'])} 个按上市月份留出，不参与任何拟合。",
+        f"**依据。** 在公开零售数据中识别出 {num(ln['funnel']['launches'])} 个新品，其中 {num(fc['test_launches'])} 个按上市月份滚动留出：预测每个新品时，只用其上市月之前已走完 {fc['horizon_weeks']} 周的新品。",
         "",
         "**建议。**",
         "",
         f"- 上市前用最相似的 {fc['params']['analogue_k']} 个历史新品（品名文本+价格）的中位数做预测：MALE {pre[best]['male']:.3f}，全局中位数 {pre['global_median']['male']:.3f}，梯度提升 {pre['gradient_boosting']['male']:.3f}；复杂模型在这里不值得上线。",
         f"- 预测要给区间：{pct(cov['nominal'], 0)} 区间在留出新品上的覆盖率为 {pct(cov['coverage'])}，上界约为下界的 {cov['median_width_ratio']:.0f} 倍，只报一个数会掩盖大部分风险。",
         f"- 有了 {kf} 周销量就重新预测：剩余需求的 MALE 从 {post['prelaunch_only']['male']:.3f}（不更新）降到 {post['bass_bayes']['male']:.3f}（带先验的 Bass 曲线），曲线比例法为 {post['curve_ratio']['male']:.3f}。",
-        f"- 首批分货按期望边际价值而不是按历史占比：同样库存、同样业务规则下价值 {spct(nv['value_gain_vs_proportional'], 2)}（区间 {ci_pct(nv['value_gain_ci'], 2)}）；因为单一渠道占了大部分需求，增益不大。",
+        f"- 首批分货按期望边际价值而不是按历史占比：同样库存、同样业务规则下价值 {spct(nv['value_gain_vs_proportional'], 2)}（区间 {ci_pct(nv['value_gain_ci'], 2)}）；单一渠道占需求的 {pct(al['context']['demand_share'][al['channels'][0]])}，可重新分配的空间小，增益不大。",
         f"- 留 {pct(ap['reserve_fraction'], 0)} 在仓、第 {ap['review_week']} 周后按实际销量补货：价值 {spct(two['value_gain_vs_proportional'])}，渠道滞留库存 {spct(two['stranded_change_vs_proportional'])}，代价是满足率从 {pct(prop['fill_rate'])} 变为 {pct(two['fill_rate'])}。"
         + (f"若在仓库存并不比滞留库存更值钱，价值增益只有 {spct(dc_eq['newsvendor_two_stage']['value_gain_vs_proportional'], 2)}。" if dc_eq else ""),
         "",

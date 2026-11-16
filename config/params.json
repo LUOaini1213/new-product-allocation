@@ -60,7 +60,7 @@
     "salvage": 0.3,
     "dc_value": 0.5,
     "ship_cost": {"United Kingdom": 0.02, "EIRE": 0.06, "Germany": 0.08, "France": 0.08, "Netherlands": 0.08, "Other Europe": 0.1, "Rest of World": 0.15},
-    "priority_min_cases": {"United Kingdom": 1, "EIRE": 1},
+    "priority_channels": [{"name": "United Kingdom", "min_cases": 1}, {"name": "EIRE", "min_cases": 1}],
     "max_share": 0.9,
     "reserve_fraction": 0.3,
     "review_week": 4,

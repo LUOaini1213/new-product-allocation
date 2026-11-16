@@ -11,7 +11,7 @@ Two decisions a product team takes for every launch, written as explicit, testab
 | Launches identified / held out | 822 / 437 | `results/launches.json` funnel.launches; `results/forecast.json` test_launches |
 | Best pre-launch method: median of nearest analogues, MALE | 1.147 [1.053, 1.245] vs global median 1.239 | `results/forecast.json` pre_launch.analogues_k10.male |
 | Gradient boosting, MALE | 1.235 [1.136, 1.334] (worse vs the best simple method) | `results/forecast.json` pre_launch.gradient_boosting.male |
-| 80% prediction interval, coverage on held-out launches | 82.6% [0.788, 0.859] | `results/forecast.json` interval_coverage.selected |
+| 80% prediction interval, coverage on held-out launches | 82.6% [78.8%, 85.9%] | `results/forecast.json` interval_coverage.selected |
 | After 2 weeks of sales: Bass + prior vs curve ratio, MALE of remaining demand | 0.744 vs 0.800 | `results/forecast.json` post_launch.2.methods |
 | MIP and marginal allocation agree (objective) | 437 of 437 launches | `results/allocation.json` mip_check |
 | Newsvendor vs proportional: value | +0.95% [+0.61%, +1.30%] | `results/allocation.json` policies.newsvendor.value_gain_vs_proportional |
@@ -73,12 +73,12 @@ Nominal level 80%. Intervals are the point forecast shifted by split-conformal q
 
 | Interval | Covered | Coverage | 80% inside Wilson interval | Median width ratio |
 |---|---|---|---|---|
-| Selected per origin (rule E2) | 361 / 437 | 82.6% [0.788, 0.859] | yes | 64.1 |
-| Median of nearest analogues | 365 / 437 | 83.5% [0.798, 0.867] | yes | 64.1 |
-| Global median | 330 / 437 | 75.5% [0.713, 0.793] | no | 43.7 |
-| Gradient boosting (attributes) | 373 / 437 | 85.4% [0.817, 0.884] | no | 93.9 |
-| Gradient boosting, quantile loss (no calibration) | 238 / 437 | 54.5% [0.498, 0.591] | no | 7.2 |
-| Selected by random-fold CV (comparison) | 250 / 437 | 57.2% [0.525, 0.618] | no | 24.2 |
+| Selected per origin (rule E2) | 361 / 437 | 82.6% [78.8%, 85.9%] | yes | 64.1 |
+| Median of nearest analogues | 365 / 437 | 83.5% [79.8%, 86.7%] | yes | 64.1 |
+| Global median | 330 / 437 | 75.5% [71.3%, 79.3%] | no | 43.7 |
+| Gradient boosting (attributes) | 373 / 437 | 85.4% [81.7%, 88.4%] | no | 93.9 |
+| Gradient boosting, quantile loss (no calibration) | 238 / 437 | 54.5% [49.8%, 59.1%] | no | 7.2 |
+| Selected by random-fold CV (comparison) | 250 / 437 | 57.2% [52.5%, 61.8%] | no | 24.2 |
 
 The calibrated intervals reach the nominal level only by being very wide (upper bound about 64 times the lower bound). Uncalibrated quantile boosting and intervals calibrated on random folds are much narrower and cover far less than 80%.
 
@@ -103,9 +103,9 @@ Target: units in the weeks after week k up to week 12, given sales in weeks 1-k.
 
 Setting, per held-out launch: stock = 1.0 x the pre-launch forecast, rounded up to whole cases (rule B1), split over 7 channels (country groups). Stock is already bought, so value = sales at the launch price + 30% of price for units stranded in a channel + 50% of price for units still at the DC - shipping (United Kingdom 2%, EIRE 6%, Germany 8%, France 8%, Netherlands 8%, Other Europe 10%, Rest of World 15% of price). These cost figures are assumptions, not data.
 
-Demand uncertainty: 200 equally likely scenarios per launch, built from the forecast, its validation residuals and the channel shares of the 20 nearest analogue launches (rule B2). Business rules, each an explicit constraint with its own unit tests: whole cases (A1); minimum cases for priority channels, in this order: EIRE 1, United Kingdom 1 (A2); at most 90% of the stock to one channel (A3).
+Demand uncertainty: 200 equally likely scenarios per launch, built from the forecast, its validation residuals and the channel shares of the 20 nearest analogue launches (rule B2). Business rules, each an explicit constraint with its own unit tests: whole cases (A1); minimum cases for priority channels, in this order: United Kingdom 1, then EIRE 1 (A2); at most 90% of the stock to one channel (A3).
 
-The expected value is separable and concave in whole cases, so marginal (greedy) allocation is optimal. The same scenario problem solved as a MIP with HiGHS gives the same objective on 437 of 437 held-out launches (largest relative gap 6.3e-16; the allocation itself is identical on 402, the rest are ties). Unit tests add brute-force enumeration as a third check.
+The expected value is separable and concave in whole cases, so marginal (greedy) allocation is optimal. The same scenario problem solved as a MIP with HiGHS gives the same objective on 437 of 437 held-out launches (largest relative gap `6.3e-16`; the allocation itself is identical on 402, the rest are ties). Unit tests add brute-force enumeration as a third check.
 
 Back-test against the demand that actually occurred, replayed week by week (lost sales, no backorders). Across the 437 launches the stock is 301,880 units against a demand of 384,535; stock is below demand for 197 launches.
 
@@ -138,7 +138,7 @@ Average first shipment by channel (share of stock) next to the realised demand s
 | Other Europe | 4.3% | 4.1% | 2.1% |
 | Rest of World | 4.9% | 1.8% | 0.2% |
 
-Cost of the business rules (newsvendor, realised value, relative to no A2/A3 rules): minimum only +0.02% (GBP 0.17 per launch); maximum share only -0.17%; both -0.19%. A negative cost means the rule raised realised value in this back-test: the cap leaves cases at the DC that the over-confident scenarios would have shipped.
+Cost of the business rules (newsvendor, realised value, relative to no A2/A3 rules): minimum only +0.02% (GBP 0.17 per launch); maximum share only -0.17%; both -0.19%. A negative cost means the rule raised realised value in this back-test: with the cap the newsvendor allocation leaves 8,915 units at the DC against 1,174 without any rule, and DC stock is valued above stranded stock.
 
 Sensitivity (one parameter changed at a time; value gain vs proportional allocation):
 

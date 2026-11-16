@@ -155,6 +155,9 @@ def test_make_rules_and_economics(params):
     r = B.make_rules(6, params, names)
     assert r.pack == 6 and r.min_cases.tolist() == [1, 1, 0, 0, 0, 0, 0]
     assert r.priority_order == (0, 1) and r.max_share == 0.9
+    flipped = {"allocation": dict(params["allocation"], priority_channels=[{"name": "EIRE", "min_cases": 2}, {"name": "United Kingdom", "min_cases": 1}])}
+    r2 = B.make_rules(6, flipped, names)
+    assert r2.priority_order == (1, 0) and r2.min_cases.tolist() == [1, 2, 0, 0, 0, 0, 0]
     r = B.make_rules(6, params, names, use_min=False, use_max=False)
     assert r.min_cases.sum() == 0 and r.priority_order == () and r.max_share == 1.0
     e = B.make_economics(2.5, params, names)

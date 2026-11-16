@@ -31,9 +31,9 @@ def make_rules(pack: int, params: dict, names: list[str], use_min: bool = True, 
     mins = np.zeros(len(names), dtype=np.int64)
     order = []
     if use_min:
-        for ch, v in ap["priority_min_cases"].items():
-            mins[names.index(ch)] = int(v)
-            order.append(names.index(ch))
+        for entry in ap["priority_channels"]:          # list order = priority order
+            mins[names.index(entry["name"])] = int(entry["min_cases"])
+            order.append(names.index(entry["name"]))
     return Rules(pack=int(pack), min_cases=mins, priority_order=tuple(order), max_share=float(ap["max_share"]) if use_max else 1.0)
 
 
@@ -282,9 +282,15 @@ def run(data: F.LaunchData, models: list[OriginModel], table: pd.DataFrame, para
     for label, um, ux in (("no_rules", False, False), ("minimum_only", True, False), ("max_share_only", False, True)):
         o, _ = run_config(["proportional", "newsvendor"], use_min=um, use_max=ux)
         v = float(sum(x.value for x in o["newsvendor"]))
-        rule_cost[label] = {"newsvendor_value": v, "proportional_value": float(sum(x.value for x in o["proportional"]))}
+        rule_cost[label] = {
+            "newsvendor_value": v, "proportional_value": float(sum(x.value for x in o["proportional"])),
+            "newsvendor_left_dc_units": float(sum(x.left_dc for x in o["newsvendor"])),
+        }
     free = rule_cost["no_rules"]["newsvendor_value"]
-    rule_cost["both_rules"] = {"newsvendor_value": base_val, "proportional_value": main["proportional"]["value"]}
+    rule_cost["both_rules"] = {
+        "newsvendor_value": base_val, "proportional_value": main["proportional"]["value"],
+        "newsvendor_left_dc_units": main["newsvendor"]["leftover_dc_units"],
+    }
     for label in ("minimum_only", "max_share_only", "both_rules"):
         rule_cost[label]["cost_vs_no_rules"] = float((free - rule_cost[label]["newsvendor_value"]) / free)
         rule_cost[label]["cost_per_launch"] = float((free - rule_cost[label]["newsvendor_value"]) / n)

@@ -89,7 +89,7 @@ RULES = [
          params=[], tests=["test_allocation.py::test_unit_and_pack_marginals_hand_case", "test_allocation.py::test_greedy_respects_rules", "test_pipeline.py::test_run_launch_invariants"],
          affects=["allocation.json:policies.newsvendor.shipped_units"]),
     dict(id="A2", group="Allocation", statement="Priority minimum: each priority channel receives at least its minimum number of cases; when stock is short the minimums are granted in the listed order until no whole case is left.",
-         params=["allocation.priority_min_cases"], tests=["test_allocation.py::test_case_bounds_minimums_in_priority_order", "test_pipeline.py::test_make_rules_and_economics"],
+         params=["allocation.priority_channels"], tests=["test_allocation.py::test_case_bounds_minimums_in_priority_order", "test_pipeline.py::test_make_rules_and_economics"],
          affects=["allocation.json:rule_cost.minimum_only.cost_vs_no_rules"]),
     dict(id="A3", group="Allocation", statement="Maximum share: no channel receives more than the stated share of the stock, rounded down to whole cases; one case is always allowed and a priority minimum overrides the cap.",
          params=["allocation.max_share"], tests=["test_allocation.py::test_case_bounds_max_share"], affects=["allocation.json:rule_cost.max_share_only.cost_vs_no_rules"]),
