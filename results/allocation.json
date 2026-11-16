@@ -58,7 +58,7 @@
     "max_relative_gap": 6.33127611099561e-16,
     "objective_agree": 437,
     "scenarios": 200,
-    "seconds": 121.7,
+    "seconds": 145.8,
     "tolerance": 1e-06
   },
   "params": {
@@ -74,6 +74,9 @@
     "salvage": 0.3,
     "scenarios": 200,
     "sensitivity": {
+      "dc_value": [
+        0.3
+      ],
       "salvage": [
         0.1,
         0.5
@@ -115,6 +118,8 @@
       "leftover_share_of_stock": 0.4089803895587651,
       "lost_sales_value": 416419.13,
       "lost_units": 206118.0,
+      "model_expected_value": 472014.540995,
+      "realised_over_expected": 0.9177229176814462,
       "shipped_units": 293780.0,
       "stranded_change_ci": [
         -0.06394229254570817,
@@ -232,6 +237,8 @@
       "leftover_share_of_stock": 0.40250099377235987,
       "lost_sales_value": 411484.625,
       "lost_units": 204162.0,
+      "model_expected_value": 463908.80116750003,
+      "realised_over_expected": 0.9250078258270877,
       "shipped_units": 301880.0,
       "stranded_share_of_stock": 0.40250099377235987,
       "value": 429119.27154999995,
@@ -450,6 +457,45 @@
         "value": 491740.13555
       },
       "value": 0.5
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.4711300661838324,
+        "stranded_share_of_stock": 0.39987412216774876,
+        "value": 432287.3205,
+        "value_gain_ci": [
+          0.004128550799955438,
+          0.010587010362613135
+        ],
+        "value_gain_vs_proportional": 0.007382676938644236
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.4711300661838324,
+        "stranded_share_of_stock": 0.39987412216774876,
+        "value": 432287.3205,
+        "value_gain_ci": [
+          0.004128550799955438,
+          0.010587010362613135
+        ],
+        "value_gain_vs_proportional": 0.007382676938644236
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.4597032779850989,
+        "stranded_share_of_stock": 0.3098085331919968,
+        "value": 430201.86275000003,
+        "value_gain_ci": [
+          -0.0020489395903013547,
+          0.006924119746598976
+        ],
+        "value_gain_vs_proportional": 0.0025228212102654506
+      },
+      "parameter": "dc_value",
+      "proportional": {
+        "fill_rate": 0.46906783517755213,
+        "stranded_share_of_stock": 0.40250099377235987,
+        "value": 429119.27154999995
+      },
+      "value": 0.3
     },
     {
       "newsvendor": {

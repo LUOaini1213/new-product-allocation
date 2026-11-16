@@ -1,4 +1,14 @@
 {
+  "bass_shape": {
+    "p_max": 0.08602612740375096,
+    "p_min": 0.05118601402525177,
+    "q_at_lower_bound": true,
+    "q_lower_bound": 1e-06,
+    "q_max": 1.0000000121709884e-06,
+    "q_min": 1.0000000000006276e-06,
+    "weight_max": 0.8601219151498359,
+    "weight_min": 0.7231745169395614
+  },
   "comparisons": {
     "analogues_vs_global_median": {
       "male": -0.09193594287311457,
@@ -664,10 +674,12 @@
       }
     }
   ],
+  "origins_count": 9,
   "params": {
     "analogue_k": 10,
     "bootstrap_reps": 2000,
     "category_min_count": 10,
+    "ci_level": 0.95,
     "cv_folds": 5,
     "forward_blocks": 6,
     "forward_min_train_blocks": 3,
