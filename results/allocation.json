@@ -1,0 +1,533 @@
+{
+  "channels": [
+    "United Kingdom",
+    "EIRE",
+    "Germany",
+    "France",
+    "Netherlands",
+    "Other Europe",
+    "Rest of World"
+  ],
+  "context": {
+    "demand_share": {
+      "EIRE": 0.030135098235531226,
+      "France": 0.023316473142886863,
+      "Germany": 0.029768421600114423,
+      "Netherlands": 0.0506455849272498,
+      "Other Europe": 0.04338746798080799,
+      "Rest of World": 0.049420728932346863,
+      "United Kingdom": 0.7733262251810629
+    },
+    "demand_units": 384535.0,
+    "launches": 437,
+    "launches_stock_below_demand": 197,
+    "mean_first_shipment_share": {
+      "newsvendor": {
+        "EIRE": 0.029878319793378055,
+        "France": 0.007747816243685274,
+        "Germany": 0.010911007355528364,
+        "Netherlands": 0.013571358186544796,
+        "Other Europe": 0.02067660091365269,
+        "Rest of World": 0.0018484595531220425,
+        "United Kingdom": 0.8885983162116076
+      },
+      "oracle": {
+        "EIRE": 0.04030573277626842,
+        "France": 0.008347263938271171,
+        "Germany": 0.01731371257296742,
+        "Netherlands": 0.015316654584759167,
+        "Other Europe": 0.012806337338058485,
+        "Rest of World": 0.011845762610385438,
+        "United Kingdom": 0.5629694721182973
+      },
+      "proportional": {
+        "EIRE": 0.03327820319456181,
+        "France": 0.028750725304424265,
+        "Germany": 0.019688987593771107,
+        "Netherlands": 0.036418930510588976,
+        "Other Europe": 0.04143734618261713,
+        "Rest of World": 0.017696883652379654,
+        "United Kingdom": 0.8227289235616572
+      }
+    },
+    "stock_units": 301880.0
+  },
+  "mip_check": {
+    "identical_allocation": 402,
+    "launches": 437,
+    "max_relative_gap": 6.33127611099561e-16,
+    "objective_agree": 437,
+    "scenarios": 200,
+    "seconds": 121.7,
+    "tolerance": 1e-06
+  },
+  "params": {
+    "dc_value": 0.5,
+    "history_months": 12,
+    "max_share": 0.9,
+    "priority_min_cases": {
+      "EIRE": 1,
+      "United Kingdom": 1
+    },
+    "reserve_fraction": 0.3,
+    "review_week": 4,
+    "salvage": 0.3,
+    "scenarios": 200,
+    "sensitivity": {
+      "salvage": [
+        0.1,
+        0.5
+      ],
+      "ship_cost_scale": [
+        0.5,
+        2.0
+      ],
+      "stock_ratio": [
+        0.5,
+        1.5
+      ]
+    },
+    "share_analogues": 20,
+    "share_prior_units": 20,
+    "ship_cost": {
+      "EIRE": 0.06,
+      "France": 0.08,
+      "Germany": 0.08,
+      "Netherlands": 0.08,
+      "Other Europe": 0.1,
+      "Rest of World": 0.15,
+      "United Kingdom": 0.02
+    },
+    "stock_ratio": 1.0
+  },
+  "policies": {
+    "newsvendor": {
+      "fill_rate": 0.4639811720649616,
+      "fill_rate_gain_ci": [
+        -0.008085051353445602,
+        -0.0024324546027816854
+      ],
+      "fill_rate_gain_vs_proportional": -0.005086663112590539,
+      "launches_better": 299,
+      "launches_worse": 136,
+      "leftover_channel_units": 115363.0,
+      "leftover_dc_units": 8100.0,
+      "leftover_share_of_stock": 0.4089803895587651,
+      "lost_sales_value": 416419.13,
+      "lost_units": 206118.0,
+      "shipped_units": 293780.0,
+      "stranded_change_ci": [
+        -0.06394229254570817,
+        -0.03862972274413293
+      ],
+      "stranded_change_vs_proportional": -0.05056498802538125,
+      "stranded_share_of_stock": 0.38214853584205644,
+      "value": 433178.56175,
+      "value_gain_ci": [
+        0.00605630506077052,
+        0.012992553505000028
+      ],
+      "value_gain_significant": true,
+      "value_gain_vs_proportional": 0.009459584943220191,
+      "value_per_launch": 991.2552900457666,
+      "value_share_of_oracle": 0.8377678133111742
+    },
+    "newsvendor_ship_all": {
+      "fill_rate": 0.4711300661838324,
+      "fill_rate_gain_ci": [
+        -0.0005485690473318992,
+        0.004554495721261515
+      ],
+      "fill_rate_gain_vs_proportional": 0.0020622310062802796,
+      "launches_better": 311,
+      "launches_worse": 124,
+      "leftover_channel_units": 120714.0,
+      "leftover_dc_units": 0.0,
+      "leftover_share_of_stock": 0.39987412216774876,
+      "lost_sales_value": 412018.78500000003,
+      "lost_units": 203369.0,
+      "shipped_units": 301880.0,
+      "stranded_change_ci": [
+        -0.015080138209489146,
+        0.0016716062169310063
+      ],
+      "stranded_change_vs_proportional": -0.006526372966166558,
+      "stranded_share_of_stock": 0.39987412216774876,
+      "value": 432287.3205,
+      "value_gain_ci": [
+        0.004128550799955438,
+        0.010587010362613135
+      ],
+      "value_gain_significant": true,
+      "value_gain_vs_proportional": 0.007382676938644236,
+      "value_per_launch": 989.2158363844393,
+      "value_share_of_oracle": 0.8360441517566208
+    },
+    "newsvendor_two_stage": {
+      "fill_rate": 0.44449009843057197,
+      "fill_rate_gain_ci": [
+        -0.031632057229701756,
+        -0.018587681114936274
+      ],
+      "fill_rate_gain_vs_proportional": -0.02457773674698016,
+      "launches_better": 354,
+      "launches_worse": 81,
+      "leftover_channel_units": 72559.0,
+      "leftover_dc_units": 58399.0,
+      "leftover_share_of_stock": 0.4338081356830529,
+      "lost_sales_value": 431606.875,
+      "lost_units": 213613.0,
+      "shipped_units": 243481.0,
+      "stranded_change_ci": [
+        -0.4216705484091448,
+        -0.38616437974148493
+      ],
+      "stranded_change_vs_proportional": -0.40284098858501977,
+      "stranded_share_of_stock": 0.24035709553464954,
+      "value": 451841.5787,
+      "value_gain_ci": [
+        0.04425874214743727,
+        0.062469456316512184
+      ],
+      "value_gain_significant": true,
+      "value_gain_vs_proportional": 0.052951029367490084,
+      "value_per_launch": 1033.9624226544622,
+      "value_share_of_oracle": 0.873862108552439
+    },
+    "oracle": {
+      "fill_rate": 0.5103176563901856,
+      "fill_rate_gain_ci": [
+        0.033776599219260746,
+        0.050319652173602014
+      ],
+      "fill_rate_gain_vs_proportional": 0.04124982121263343,
+      "launches_better": 435,
+      "launches_worse": 0,
+      "leftover_channel_units": 1919.0,
+      "leftover_dc_units": 103726.0,
+      "leftover_share_of_stock": 0.34995693653107196,
+      "lost_sales_value": 377034.13,
+      "lost_units": 188300.0,
+      "shipped_units": 198154.0,
+      "stranded_change_ci": [
+        -0.9870122082838718,
+        -0.9812482557720837
+      ],
+      "stranded_change_vs_proportional": -0.9842066712205881,
+      "stranded_share_of_stock": 0.006356830528686895,
+      "value": 517062.7886,
+      "value_gain_ci": [
+        0.1850335354937291,
+        0.22694926166362345
+      ],
+      "value_gain_significant": true,
+      "value_gain_vs_proportional": 0.2049395654787157,
+      "value_per_launch": 1183.2100425629292,
+      "value_share_of_oracle": 1.0
+    },
+    "proportional": {
+      "fill_rate": 0.46906783517755213,
+      "leftover_channel_units": 121507.0,
+      "leftover_dc_units": 0.0,
+      "leftover_share_of_stock": 0.40250099377235987,
+      "lost_sales_value": 411484.625,
+      "lost_units": 204162.0,
+      "shipped_units": 301880.0,
+      "stranded_share_of_stock": 0.40250099377235987,
+      "value": 429119.27154999995,
+      "value_per_launch": 981.9662964530892,
+      "value_share_of_oracle": 0.8299171416142398
+    },
+    "proportional_two_stage": {
+      "fill_rate": 0.47212087326251184,
+      "fill_rate_gain_ci": [
+        0.0013009422639078077,
+        0.004810943413771892
+      ],
+      "fill_rate_gain_vs_proportional": 0.003053038084959714,
+      "launches_better": 278,
+      "launches_worse": 133,
+      "leftover_channel_units": 120333.0,
+      "leftover_dc_units": 0.0,
+      "leftover_share_of_stock": 0.3986120312707036,
+      "lost_sales_value": 409569.945,
+      "lost_units": 202988.0,
+      "shipped_units": 301880.0,
+      "stranded_change_ci": [
+        -0.01553714841935564,
+        -0.004054789396578386
+      ],
+      "stranded_change_vs_proportional": -0.009661994782193619,
+      "stranded_share_of_stock": 0.3986120312707036,
+      "value": 430795.7613,
+      "value_gain_ci": [
+        0.0017514706692324405,
+        0.006149280118468637
+      ],
+      "value_gain_significant": true,
+      "value_gain_vs_proportional": 0.003906815333518902,
+      "value_per_launch": 985.8026574370709,
+      "value_share_of_oracle": 0.8331594746286486
+    }
+  },
+  "rule_cost": {
+    "both_rules": {
+      "cost_per_launch": -1.875194736842164,
+      "cost_vs_no_rules": -0.001895322885242251,
+      "newsvendor_value": 433178.56175,
+      "proportional_value": 429119.27154999995
+    },
+    "max_share_only": {
+      "cost_per_launch": -1.674281693363772,
+      "cost_vs_no_rules": -0.0016922532617163618,
+      "newsvendor_value": 433090.76274999994,
+      "proportional_value": 429196.7067500002
+    },
+    "minimum_only": {
+      "cost_per_launch": 0.1681977116703418,
+      "cost_vs_no_rules": 0.0001700031286942595,
+      "newsvendor_value": 432285.59925,
+      "proportional_value": 429119.27155000024
+    },
+    "no_rules": {
+      "newsvendor_value": 432359.10164999997,
+      "proportional_value": 429216.8307500002
+    }
+  },
+  "sensitivity": [
+    {
+      "newsvendor": {
+        "fill_rate": 0.28968754469684166,
+        "stranded_share_of_stock": 0.2625757904923666,
+        "value": 253318.30745,
+        "value_gain_ci": [
+          0.015222948115156305,
+          0.021768092824014953
+        ],
+        "value_gain_vs_proportional": 0.018383609512991644
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.2903168762271315,
+        "stranded_share_of_stock": 0.26505770281568675,
+        "value": 253312.89505,
+        "value_gain_ci": [
+          0.015184615649631037,
+          0.02175736091483922
+        ],
+        "value_gain_vs_proportional": 0.018361850724597655
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.2711378678143732,
+        "stranded_share_of_stock": 0.16104121817786818,
+        "value": 256929.8825,
+        "value_gain_ci": [
+          0.026241135310201093,
+          0.04004520146119112
+        ],
+        "value_gain_vs_proportional": 0.03290276871814313
+      },
+      "parameter": "stock_ratio",
+      "proportional": {
+        "fill_rate": 0.2839143380966622,
+        "stranded_share_of_stock": 0.28126584111811137,
+        "value": 248745.46790000002
+      },
+      "value": 0.5
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.5176199825763584,
+        "stranded_share_of_stock": 0.36081851683086846,
+        "value": 587796.52845,
+        "value_gain_ci": [
+          0.019213666054668694,
+          0.03600996017716168
+        ],
+        "value_gain_vs_proportional": 0.02751357490541923
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.5815751492061841,
+        "stranded_share_of_stock": 0.5053242082258685,
+        "value": 574249.4689,
+        "value_gain_ci": [
+          0.0006640410505783297,
+          0.006872854502754364
+        ],
+        "value_gain_vs_proportional": 0.003832272083874633
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.5565579206054065,
+        "stranded_share_of_stock": 0.30133425941082004,
+        "value": 618526.8557,
+        "value_gain_ci": [
+          0.07270201819264523,
+          0.08977710644631519
+        ],
+        "value_gain_vs_proportional": 0.08123255227659447
+      },
+      "parameter": "stock_ratio",
+      "proportional": {
+        "fill_rate": 0.5864251628590376,
+        "stranded_share_of_stock": 0.5011988869374411,
+        "value": 572057.1901
+      },
+      "value": 1.5
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.3769201763168502,
+        "stranded_share_of_stock": 0.23608056181264078,
+        "value": 392294.67835,
+        "value_gain_ci": [
+          0.04951767351188247,
+          0.09256850615795667
+        ],
+        "value_gain_vs_proportional": 0.07038576503632069
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.4712782971641073,
+        "stranded_share_of_stock": 0.3996853054193719,
+        "value": 369609.15705000004,
+        "value_gain_ci": [
+          0.003708802057171901,
+          0.013154039730987775
+        ],
+        "value_gain_vs_proportional": 0.008487757206900304
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.43402811187538193,
+        "stranded_share_of_stock": 0.2250993772359878,
+        "value": 414720.55435,
+        "value_gain_ci": [
+          0.11125982847348913,
+          0.15390897273303814
+        ],
+        "value_gain_vs_proportional": 0.13157532422135076
+      },
+      "parameter": "salvage",
+      "proportional": {
+        "fill_rate": 0.46906783517755213,
+        "stranded_share_of_stock": 0.40250099377235987,
+        "value": 366498.40755
+      },
+      "value": 0.1
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.4707399846567933,
+        "stranded_share_of_stock": 0.4003710083476878,
+        "value": 494970.64694999997,
+        "value_gain_ci": [
+          0.00449584678523215,
+          0.008703362747936266
+        ],
+        "value_gain_vs_proportional": 0.0065695499847429496
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.4707399846567933,
+        "stranded_share_of_stock": 0.4003710083476878,
+        "value": 494970.64694999997,
+        "value_gain_ci": [
+          0.00449584678523215,
+          0.008703362747936266
+        ],
+        "value_gain_vs_proportional": 0.0065695499847429496
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.45483766107116386,
+        "stranded_share_of_stock": 0.29138068106532394,
+        "value": 493418.3129,
+        "value_gain_ci": [
+          0.0004322374181549485,
+          0.006291343440573375
+        ],
+        "value_gain_vs_proportional": 0.003412732109253192
+      },
+      "parameter": "salvage",
+      "proportional": {
+        "fill_rate": 0.46906783517755213,
+        "stranded_share_of_stock": 0.40250099377235987,
+        "value": 491740.13555
+      },
+      "value": 0.5
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.46960354714135255,
+        "stranded_share_of_stock": 0.3924175168941301,
+        "value": 441525.200225,
+        "value_gain_ci": [
+          0.0009837932489364886,
+          0.006934644281789328
+        ],
+        "value_gain_vs_proportional": 0.003955053473687875
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.47137711781762387,
+        "stranded_share_of_stock": 0.3995594275871207,
+        "value": 441235.956675,
+        "value_gain_ci": [
+          0.00026083067883002765,
+          0.006257774891715625
+        ],
+        "value_gain_vs_proportional": 0.0032973616283318513
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.448996840339631,
+        "stranded_share_of_stock": 0.2428812773287399,
+        "value": 459667.00565,
+        "value_gain_ci": [
+          0.037155986328541085,
+          0.053501908337993835
+        ],
+        "value_gain_vs_proportional": 0.04520650916927113
+      },
+      "parameter": "ship_cost_scale",
+      "proportional": {
+        "fill_rate": 0.46906783517755213,
+        "stranded_share_of_stock": 0.40250099377235987,
+        "value": 439785.823775
+      },
+      "value": 0.5
+    },
+    {
+      "newsvendor": {
+        "fill_rate": 0.44781879412797276,
+        "stranded_share_of_stock": 0.35741685437922355,
+        "value": 418433.6288,
+        "value_gain_ci": [
+          0.021455611476002463,
+          0.03086876837468383
+        ],
+        "value_gain_vs_proportional": 0.026110404322246084
+      },
+      "newsvendor_ship_all": {
+        "fill_rate": 0.4702666857373191,
+        "stranded_share_of_stock": 0.40097389691268054,
+        "value": 414556.91750000004,
+        "value_gain_ci": [
+          0.013132083832994957,
+          0.020202697389472855
+        ],
+        "value_gain_vs_proportional": 0.016603678462539986
+      },
+      "newsvendor_two_stage": {
+        "fill_rate": 0.4361137477732846,
+        "stranded_share_of_stock": 0.2373956539022128,
+        "value": 438055.4223,
+        "value_gain_ci": [
+          0.06376238023426858,
+          0.08568107467562505
+        ],
+        "value_gain_vs_proportional": 0.07422825402652068
+      },
+      "parameter": "ship_cost_scale",
+      "proportional": {
+        "fill_rate": 0.46906783517755213,
+        "stranded_share_of_stock": 0.40250099377235987,
+        "value": 407786.16709999996
+      },
+      "value": 2.0
+    }
+  ]
+}

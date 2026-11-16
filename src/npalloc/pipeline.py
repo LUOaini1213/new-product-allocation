@@ -221,27 +221,35 @@ def evaluate_forecasts(data: F.LaunchData, params: dict, progress=None) -> tuple
     table = pd.DataFrame(rows)
     results = summarise_forecasts(table, params, method_names)
     results["origins"] = origin_log
+    shapes = [pm for o in origin_log for pm in o["post"].values()]
+    results["bass_shape"] = {
+        "p_min": min(s["p"] for s in shapes), "p_max": max(s["p"] for s in shapes),
+        "q_min": min(s["q"] for s in shapes), "q_max": max(s["q"] for s in shapes),
+        "q_lower_bound": bass.Q_LOWER_BOUND,
+        "q_at_lower_bound": bool(max(s["q"] for s in shapes) <= bass.Q_LOWER_BOUND * 1.01),
+        "weight_min": min(s["weight"] for s in shapes), "weight_max": max(s["weight"] for s in shapes),
+    }
     return results, table, models
 
 
-def _metric_block(actual: np.ndarray, fc: dict[str, np.ndarray], idx: np.ndarray) -> dict:
+def _metric_block(actual: np.ndarray, fc: dict[str, np.ndarray], idx: np.ndarray, level: float) -> dict:
     out = {}
     for name, f in fc.items():
         block = {}
         for mname, fn in M.METRICS.items():
-            lo, hi = M.bootstrap_ci(lambda r, fn=fn, f=f: fn(actual[r], f[r]), idx)
+            lo, hi = M.bootstrap_ci(lambda r, fn=fn, f=f: fn(actual[r], f[r]), idx, level)
             block[mname] = fn(actual, f)
             block[f"{mname}_ci"] = [lo, hi]
         out[name] = block
     return out
 
 
-def _paired(actual: np.ndarray, f_a: np.ndarray, f_b: np.ndarray, idx: np.ndarray) -> dict:
+def _paired(actual: np.ndarray, f_a: np.ndarray, f_b: np.ndarray, idx: np.ndarray, level: float) -> dict:
     """Difference metric(a) - metric(b) with a paired bootstrap interval (negative = a is better)."""
     out = {}
     for mname in ("wape", "male"):
         fn = M.METRICS[mname]
-        lo, hi = M.bootstrap_ci(lambda r: fn(actual[r], f_a[r]) - fn(actual[r], f_b[r]), idx)
+        lo, hi = M.bootstrap_ci(lambda r: fn(actual[r], f_a[r]) - fn(actual[r], f_b[r]), idx, level)
         out[mname] = fn(actual, f_a) - fn(actual, f_b)
         out[f"{mname}_ci"] = [lo, hi]
         out[f"{mname}_significant"] = bool(hi < 0 or lo > 0)
@@ -254,22 +262,23 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
     n = len(table)
     idx = M.bootstrap_indices(n, fp["bootstrap_reps"], fp["seed"])
     fc = {name: table[f"f_{name}"].to_numpy() for name in method_names + ["selected", "selected_random_cv"]}
-    pre = _metric_block(actual, fc, idx)
+    level = fp["ci_level"]
+    pre = _metric_block(actual, fc, idx, level)
     simple = [m for m in method_names if not m.startswith("gradient_boosting")]
     best_simple = min(simple, key=lambda m: pre[m]["male"])
     best_simple_wape = min(simple, key=lambda m: pre[m]["wape"])
     comparisons = {
         "best_simple_by_male": best_simple,
         "best_simple_by_wape": best_simple_wape,
-        "gradient_boosting_vs_best_simple_by_male": _paired(actual, fc["gradient_boosting"], fc[best_simple], idx),
-        "gradient_boosting_vs_best_simple_by_wape": _paired(actual, fc["gradient_boosting"], fc[best_simple_wape], idx),
-        "gradient_boosting_vs_global_median": _paired(actual, fc["gradient_boosting"], fc["global_median"], idx),
-        "calendar_vs_no_calendar_boosting": _paired(actual, fc["gradient_boosting_calendar"], fc["gradient_boosting"], idx),
-        "selected_vs_selected_random_cv": _paired(actual, fc["selected"], fc["selected_random_cv"], idx),
-        "selected_vs_best_simple_by_male": _paired(actual, fc["selected"], fc[best_simple], idx),
-        "analogues_vs_global_median": _paired(actual, fc[f"analogues_k{fp['analogue_k']}"], fc["global_median"], idx),
-        "nearest_analogue_vs_global_median": _paired(actual, fc["nearest_analogue"], fc["global_median"], idx),
-        "selected_vs_global_median": _paired(actual, fc["selected"], fc["global_median"], idx),
+        "gradient_boosting_vs_best_simple_by_male": _paired(actual, fc["gradient_boosting"], fc[best_simple], idx, level),
+        "gradient_boosting_vs_best_simple_by_wape": _paired(actual, fc["gradient_boosting"], fc[best_simple_wape], idx, level),
+        "gradient_boosting_vs_global_median": _paired(actual, fc["gradient_boosting"], fc["global_median"], idx, level),
+        "calendar_vs_no_calendar_boosting": _paired(actual, fc["gradient_boosting_calendar"], fc["gradient_boosting"], idx, level),
+        "selected_vs_selected_random_cv": _paired(actual, fc["selected"], fc["selected_random_cv"], idx, level),
+        "selected_vs_best_simple_by_male": _paired(actual, fc["selected"], fc[best_simple], idx, level),
+        "analogues_vs_global_median": _paired(actual, fc[f"analogues_k{fp['analogue_k']}"], fc["global_median"], idx, level),
+        "nearest_analogue_vs_global_median": _paired(actual, fc["nearest_analogue"], fc["global_median"], idx, level),
+        "selected_vs_global_median": _paired(actual, fc["selected"], fc["global_median"], idx, level),
     }
     coverage = {}
     pi_names = [c[3:] for c in table.columns if c.startswith("lo_")]
@@ -287,14 +296,14 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
     for k in fp["post_launch_weeks"]:
         rem = actual - table[f"sold_{k}"].to_numpy(dtype=float)
         fck = {name: table[f"r{k}_{name}"].to_numpy() for name in POST_METHODS + ["selected"]}
-        block = _metric_block(rem, fck, idx)
+        block = _metric_block(rem, fck, idx, level)
         best_simple_k = min(("run_rate", "curve_ratio"), key=lambda m: block[m]["male"])
         post[str(k)] = {
             "methods": block,
             "best_simple_by_male": best_simple_k,
-            "bass_vs_best_simple": _paired(rem, fck["bass"], fck[best_simple_k], idx),
-            "bass_bayes_vs_best_simple": _paired(rem, fck["bass_bayes"], fck[best_simple_k], idx),
-            "bass_bayes_vs_prelaunch_only": _paired(rem, fck["bass_bayes"], fck["prelaunch_only"], idx),
+            "bass_vs_best_simple": _paired(rem, fck["bass"], fck[best_simple_k], idx, level),
+            "bass_bayes_vs_best_simple": _paired(rem, fck["bass_bayes"], fck[best_simple_k], idx, level),
+            "bass_bayes_vs_prelaunch_only": _paired(rem, fck["bass_bayes"], fck["prelaunch_only"], idx, level),
             "remaining_units": float(rem.sum()),
         }
     sel_counts = table.groupby("selected_method").size()
@@ -302,6 +311,7 @@ def summarise_forecasts(table: pd.DataFrame, params: dict, method_names: list[st
     return {
         "params": fp,
         "horizon_weeks": params["data"]["horizon_weeks"],
+        "origins_count": int(table["origin"].nunique()),
         "test_launches": n,
         "test_units": float(actual.sum()),
         "first_origin": table["origin"].min(),

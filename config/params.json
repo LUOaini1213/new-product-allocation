@@ -48,7 +48,8 @@
     "seed": 20261115,
     "pi_coverage": 0.8,
     "post_launch_weeks": [2, 4],
-    "bootstrap_reps": 2000
+    "bootstrap_reps": 2000,
+    "ci_level": 0.95
   },
   "allocation": {
     "scenarios": 200,
@@ -63,6 +64,6 @@
     "max_share": 0.9,
     "reserve_fraction": 0.3,
     "review_week": 4,
-    "sensitivity": {"stock_ratio": [0.5, 1.5], "salvage": [0.1, 0.5], "ship_cost_scale": [0.5, 2.0]}
+    "sensitivity": {"stock_ratio": [0.5, 1.5], "salvage": [0.1, 0.5], "dc_value": [0.3], "ship_cost_scale": [0.5, 2.0]}
   }
 }

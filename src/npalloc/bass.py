@@ -13,6 +13,9 @@ import numpy as np
 from scipy.optimize import least_squares
 
 
+Q_LOWER_BOUND = 1e-6
+
+
 def bass_cdf(t, p: float, q: float):
     t = np.asarray(t, dtype=float)
     e = np.exp(-(p + q) * t)
@@ -35,7 +38,7 @@ def fit_shape(cum_share: np.ndarray, horizon: int) -> tuple[float, float]:
 
     best = None
     for p0, q0 in [(0.03, 0.38), (0.2, 0.1), (0.5, 0.01), (0.05, 1.0)]:
-        sol = least_squares(resid, x0=np.log([p0, q0]), bounds=(np.log([1e-4, 1e-6]), np.log([5.0, 5.0])))
+        sol = least_squares(resid, x0=np.log([p0, q0]), bounds=(np.log([1e-4, Q_LOWER_BOUND]), np.log([5.0, 5.0])))
         if best is None or sol.cost < best.cost:
             best = sol
     p, q = np.exp(best.x)

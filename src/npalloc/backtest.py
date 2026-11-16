@@ -37,10 +37,14 @@ def make_rules(pack: int, params: dict, names: list[str], use_min: bool = True, 
     return Rules(pack=int(pack), min_cases=mins, priority_order=tuple(order), max_share=float(ap["max_share"]) if use_max else 1.0)
 
 
-def make_economics(price: float, params: dict, names: list[str], salvage: float | None = None, ship_scale: float = 1.0) -> Economics:
+def make_economics(price: float, params: dict, names: list[str], salvage: float | None = None, ship_scale: float = 1.0,
+                   dc_value: float | None = None) -> Economics:
     ap = params["allocation"]
     ship = np.array([ap["ship_cost"][n] for n in names], dtype=float) * ship_scale
-    return Economics(price=float(price), salvage=float(ap["salvage"] if salvage is None else salvage), dc_value=float(ap["dc_value"]), ship_cost=ship)
+    return Economics(
+        price=float(price), salvage=float(ap["salvage"] if salvage is None else salvage),
+        dc_value=float(ap["dc_value"] if dc_value is None else dc_value), ship_cost=ship,
+    )
 
 
 def stock_units(forecast: float, ratio: float, pack: int) -> int:
@@ -137,7 +141,7 @@ def run_launch(
     return out, extra
 
 
-def aggregate(outcomes: dict[str, list], price: np.ndarray, idx: np.ndarray, reference: str = "proportional") -> dict:
+def aggregate(outcomes: dict[str, list], price: np.ndarray, idx: np.ndarray, level: float = 0.95, reference: str = "proportional") -> dict:
     """B4: fill rate, lost sales, leftover and value per policy, with paired bootstrap intervals vs the reference."""
     arr = {}
     for pol, outs in outcomes.items():
@@ -168,19 +172,19 @@ def aggregate(outcomes: dict[str, list], price: np.ndarray, idx: np.ndarray, ref
         }
         if pol != reference:
             dv = a["value"] - ref["value"]
-            lo, hi = M.bootstrap_ci(lambda r: dv[r].sum() / ref["value"][r].sum(), idx)
+            lo, hi = M.bootstrap_ci(lambda r: dv[r].sum() / ref["value"][r].sum(), idx, level)
             block["value_gain_vs_proportional"] = float(dv.sum() / ref["value"].sum())
             block["value_gain_ci"] = [lo, hi]
             block["value_gain_significant"] = bool(lo > 0 or hi < 0)
             block["launches_better"] = int((dv > 1e-9).sum())
             block["launches_worse"] = int((dv < -1e-9).sum())
             lo, hi = M.bootstrap_ci(
-                lambda r: a["sales"][r].sum() / a["demand"][r].sum() - ref["sales"][r].sum() / ref["demand"][r].sum(), idx
+                lambda r: a["sales"][r].sum() / a["demand"][r].sum() - ref["sales"][r].sum() / ref["demand"][r].sum(), idx, level
             )
             block["fill_rate_gain_vs_proportional"] = block["fill_rate"] - float(ref["sales"].sum() / ref["demand"].sum())
             block["fill_rate_gain_ci"] = [lo, hi]
             ds = a["left_channel"] - ref["left_channel"]
-            lo, hi = M.bootstrap_ci(lambda r: ds[r].sum() / ref["left_channel"][r].sum(), idx)
+            lo, hi = M.bootstrap_ci(lambda r: ds[r].sum() / ref["left_channel"][r].sum(), idx, level)
             block["stranded_change_vs_proportional"] = float(ds.sum() / ref["left_channel"].sum())
             block["stranded_change_ci"] = [lo, hi]
         res[pol] = block
@@ -209,12 +213,12 @@ def run(data: F.LaunchData, models: list[OriginModel], table: pd.DataFrame, para
     idx = M.bootstrap_indices(n, fp["bootstrap_reps"], fp["seed"] + 1)
     price = np.array([j[7] for j in jobs])
 
-    def run_config(policies, stock_ratio=None, salvage=None, ship_scale=1.0, use_min=True, use_max=True, keep=False):
+    def run_config(policies, stock_ratio=None, salvage=None, ship_scale=1.0, dc_value=None, use_min=True, use_max=True, keep=False):
         outcomes = {p: [] for p in policies}
         extras = []
         for code, om, wk, point, rows, hist, pack, pr, gi in jobs:
             rules = make_rules(pack, params, names, use_min, use_max)
-            econ = make_economics(pr, params, names, salvage, ship_scale)
+            econ = make_economics(pr, params, names, salvage, ship_scale, dc_value)
             out, extra = run_launch(wk, point, om, rows, hist, rules, econ, params,
                                     ap["stock_ratio"] if stock_ratio is None else stock_ratio, fp["seed"] + gi, policies)
             for p in policies:
@@ -226,7 +230,13 @@ def run(data: F.LaunchData, models: list[OriginModel], table: pd.DataFrame, para
     if progress:
         progress(f"allocation back-test on {n} launches")
     outcomes, extras = run_config(POLICIES, keep=True)
-    main = aggregate(outcomes, price, idx)
+    level = fp["ci_level"]
+    main = aggregate(outcomes, price, idx, level)
+    # calibration of the scenario model: value promised by the scenarios vs value realised
+    for pol in ("proportional", "newsvendor"):
+        promised = sum(expected_value(e[2]["first"][pol], e[2]["scen"], e[2]["stock"], e[1]) for e in extras)
+        main[pol]["model_expected_value"] = float(promised)
+        main[pol]["realised_over_expected"] = float(main[pol]["value"] / promised)
 
     # A4 cross-check: MIP vs marginal allocation on every held-out launch
     if progress:
@@ -283,11 +293,12 @@ def run(data: F.LaunchData, models: list[OriginModel], table: pd.DataFrame, para
     sp = ap["sensitivity"]
     configs = [("stock_ratio", v, dict(stock_ratio=v)) for v in sp["stock_ratio"]]
     configs += [("salvage", v, dict(salvage=v)) for v in sp["salvage"]]
+    configs += [("dc_value", v, dict(dc_value=v)) for v in sp["dc_value"]]
     configs += [("ship_cost_scale", v, dict(ship_scale=v)) for v in sp["ship_cost_scale"]]
     pols = ["proportional", "newsvendor_ship_all", "newsvendor", "newsvendor_two_stage"]
     for pname, val, kw in configs:
         o, _ = run_config(pols, **kw)
-        agg = aggregate(o, price, idx)
+        agg = aggregate(o, price, idx, level)
         sens.append({"parameter": pname, "value": val, **{
             pol: {k2: agg[pol][k2] for k2 in ("fill_rate", "stranded_share_of_stock", "value", "value_gain_vs_proportional", "value_gain_ci") if k2 in agg[pol]}
             for pol in pols}})
