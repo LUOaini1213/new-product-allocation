@@ -1,0 +1,63 @@
+{
+  "funnel": {
+    "candidates": 858,
+    "first_sale_after_burn_in": 1049,
+    "first_sale_in_burn_in": 3651,
+    "horizon_not_observed": 191,
+    "launches": 822,
+    "products": 4700,
+    "rejected_same_description": 2,
+    "rejected_succession": 0,
+    "rejected_variant": 34
+  },
+  "launches_by_category": {
+    "bags": 16,
+    "children": 21,
+    "christmas": 96,
+    "decor": 147,
+    "garden": 14,
+    "jewellery": 9,
+    "kitchen": 205,
+    "lighting": 46,
+    "other": 93,
+    "stationery": 97,
+    "storage": 78
+  },
+  "launches_by_month": {
+    "2010-06": 38,
+    "2010-07": 59,
+    "2010-08": 37,
+    "2010-09": 90,
+    "2010-10": 98,
+    "2010-11": 45,
+    "2010-12": 18,
+    "2011-01": 7,
+    "2011-02": 22,
+    "2011-03": 40,
+    "2011-04": 55,
+    "2011-05": 77,
+    "2011-06": 110,
+    "2011-07": 26,
+    "2011-08": 36,
+    "2011-09": 64
+  },
+  "median_launch_price": 2.08,
+  "params": {
+    "burn_in_end": "2010-06-01",
+    "cancel_window_days": 30,
+    "colaunch_days": 28,
+    "data_end_exclusive": "2011-12-10",
+    "data_start": "2009-12-01",
+    "horizon_weeks": 12,
+    "succession_gap_days": 56,
+    "succession_jaccard_min": 0.75,
+    "succession_price_ratio_max": 1.25
+  },
+  "units_12w": {
+    "max": 17467,
+    "mean": 889.5486618004866,
+    "median": 468.0,
+    "p10": 35.10000000000001,
+    "p90": 2159.6999999999994
+  }
+}

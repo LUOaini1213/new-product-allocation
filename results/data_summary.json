@@ -1,0 +1,45 @@
+{
+  "channel_revenue_share": {
+    "EIRE": 0.031809602583126,
+    "France": 0.01612989545151454,
+    "Germany": 0.01989220896231794,
+    "Netherlands": 0.028593406176939142,
+    "Other Europe": 0.03428323017369596,
+    "Rest of World": 0.015404786251591125,
+    "United Kingdom": 0.8538868704008155
+  },
+  "channel_unit_share": {
+    "EIRE": 0.030142893035419924,
+    "France": 0.02464991979181634,
+    "Germany": 0.020329223519477843,
+    "Netherlands": 0.03498007897435231,
+    "Other Europe": 0.05487522068797668,
+    "Rest of World": 0.017070134394324633,
+    "United Kingdom": 0.8179525295966322
+  },
+  "channels": 7,
+  "cleaning": {
+    "cancellation_rows": 19165,
+    "demand_lines": 1010503,
+    "dropped_nonpositive_rows": 5938,
+    "non_product_rows": 5992,
+    "orders_reversed_by_cancellation": 4442,
+    "overlap_rows_dropped": 22523,
+    "raw_rows": 1067371
+  },
+  "countries": 43,
+  "first_line": "2009-12-01",
+  "last_line": "2011-12-09",
+  "sha256": {
+    "online_retail_II.xlsx": "bcbe73b35f5b7babf197fb0cb983a11f5d9ff929078d4aa53d171b1f2df2e980",
+    "online_retail_ii.zip": "572e36277c2390fbfde10664750731e0a86f55e33470d91919085f0408e67bfb"
+  },
+  "source": {
+    "citation": "Chen, D. (2012). Online Retail II [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CG6D",
+    "dataset": "Online Retail II",
+    "landing_page": "https://archive.ics.uci.edu/dataset/502/online+retail+ii",
+    "licence": "CC BY 4.0 (Creative Commons Attribution 4.0 International)",
+    "retrieved": "2026-11-15",
+    "source_url": "https://archive.ics.uci.edu/static/public/502/online+retail+ii.zip"
+  }
+}

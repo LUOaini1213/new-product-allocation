@@ -1,0 +1,66 @@
+{
+  "data": {
+    "data_start": "2009-12-01",
+    "data_end_exclusive": "2011-12-10",
+    "burn_in_end": "2010-06-01",
+    "horizon_weeks": 12,
+    "cancel_window_days": 30,
+    "colaunch_days": 28,
+    "succession_jaccard_min": 0.75,
+    "succession_price_ratio_max": 1.25,
+    "succession_gap_days": 56
+  },
+  "channels": {
+    "groups": [
+      {"name": "United Kingdom", "countries": ["United Kingdom"]},
+      {"name": "EIRE", "countries": ["EIRE"]},
+      {"name": "Germany", "countries": ["Germany"]},
+      {"name": "France", "countries": ["France"]},
+      {"name": "Netherlands", "countries": ["Netherlands"]},
+      {"name": "Other Europe", "countries": ["Austria", "Belgium", "Channel Islands", "Cyprus", "Czech Republic", "Denmark", "European Community", "Finland", "Greece", "Iceland", "Italy", "Lithuania", "Malta", "Norway", "Poland", "Portugal", "Spain", "Sweden", "Switzerland"]},
+      {"name": "Rest of World", "countries": []}
+    ],
+    "fallback": "Rest of World"
+  },
+  "categories": {
+    "rules": [
+      {"name": "christmas", "keywords": ["CHRISTMAS", "XMAS", "SANTA", "REINDEER", "ADVENT", "BAUBLE", "WREATH", "SNOWFLAKE", "NATIVITY", "HOLLY"]},
+      {"name": "stationery", "keywords": ["CARD", "CARDS", "WRAP", "PAPER", "NOTEBOOK", "SKETCHBOOK", "TAGS", "RIBBON", "CALENDAR", "TISSUES", "STICKERS", "PENCIL", "PENCILS", "PEN", "BOOK"]},
+      {"name": "kitchen", "keywords": ["MUG", "CUP", "TEA", "CAKE", "BOWL", "JAR", "JAM", "BAKING", "PLATE", "CUTLERY", "NAPKIN", "NAPKINS", "BEAKER", "BOTTLE", "MOULD", "TRAY", "PAN", "SAUCER", "DISH", "PANTRY", "KITCHEN", "LUNCH", "EGG", "COFFEE", "BREAD", "BISCUIT", "APRON", "CASES"]},
+      {"name": "bags", "keywords": ["BAG", "BAGS", "WALLET", "PURSE", "HANDBAG"]},
+      {"name": "lighting", "keywords": ["LIGHT", "LIGHTS", "LANTERN", "CANDLE", "CANDLES", "HOLDER", "LAMP", "WARMER"]},
+      {"name": "storage", "keywords": ["BOX", "BOXES", "TIN", "TINS", "STORAGE", "DRAWER", "CABINET", "BASKET", "ORGANISER", "RACK", "TRINKET", "BIN"]},
+      {"name": "decor", "keywords": ["HEART", "HEARTS", "DECORATION", "DECORATIONS", "SIGN", "FRAME", "CLOCK", "MIRROR", "HANGING", "WALL", "HOOK", "KNOB", "TILE", "DOORMAT", "CUSHION", "BUNTING", "STAR", "GARLAND"]},
+      {"name": "garden", "keywords": ["GARDEN", "HERB", "ZINC", "PLANT", "POT", "MARKER"]},
+      {"name": "children", "keywords": ["CHILDRENS", "DOLLY", "TOY", "GAME", "SPACEBOY", "GIRL", "CIRCUS", "FELTCRAFT", "KIT", "BABY"]},
+      {"name": "jewellery", "keywords": ["NECKLACE", "BRACELET", "EARRINGS", "RING", "CHARMS"]}
+    ],
+    "fallback": "other"
+  },
+  "forecast": {
+    "test_start": "2011-01-01",
+    "category_min_count": 10,
+    "analogue_k": 10,
+    "price_weight": 0.25,
+    "cv_folds": 5,
+    "seed": 20261115,
+    "pi_coverage": 0.8,
+    "post_launch_weeks": [2, 4],
+    "bootstrap_reps": 2000
+  },
+  "allocation": {
+    "scenarios": 200,
+    "share_analogues": 20,
+    "share_prior_units": 20,
+    "history_months": 12,
+    "stock_ratio": 1.0,
+    "salvage": 0.3,
+    "dc_value": 0.5,
+    "ship_cost": {"United Kingdom": 0.02, "EIRE": 0.06, "Germany": 0.08, "France": 0.08, "Netherlands": 0.08, "Other Europe": 0.1, "Rest of World": 0.15},
+    "priority_min_cases": {"United Kingdom": 1, "EIRE": 1},
+    "max_share": 0.9,
+    "reserve_fraction": 0.3,
+    "review_week": 4,
+    "sensitivity": {"stock_ratio": [0.5, 1.5], "salvage": [0.1, 0.5], "ship_cost_scale": [0.5, 2.0]}
+  }
+}
