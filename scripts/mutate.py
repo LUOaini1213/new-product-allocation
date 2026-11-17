@@ -35,18 +35,18 @@ OUT = ROOT / "results" / "mutation.json"
 # the test files most likely to notice a mutant in each module; they run first so that a kill is quick.
 # A mutant that passes them is still run against the whole suite before it is called a survivor.
 TARGETS = {
-    "cleaning.py": ["tests/test_cleaning.py"],
-    "launches.py": ["tests/test_launches.py"],
+    "cleaning.py": ["tests/test_cleaning.py", "tests/test_mutation_survivors.py"],
+    "launches.py": ["tests/test_launches.py", "tests/test_mutation_survivors.py"],
     "textutil.py": ["tests/test_launches.py"],
     "channels.py": ["tests/test_launches.py"],
     "categories.py": ["tests/test_launches.py"],
     "forecast.py": ["tests/test_forecast.py", "tests/test_pipeline.py"],
-    "bass.py": ["tests/test_forecast.py", "tests/test_pipeline.py"],
-    "metrics.py": ["tests/test_forecast.py", "tests/test_pipeline.py"],
-    "allocation.py": ["tests/test_allocation.py"],
+    "bass.py": ["tests/test_forecast.py", "tests/test_pipeline.py", "tests/test_mutation_survivors.py"],
+    "metrics.py": ["tests/test_forecast.py", "tests/test_pipeline.py", "tests/test_mutation_survivors.py"],
+    "allocation.py": ["tests/test_allocation.py", "tests/test_mutation_survivors.py"],
     "simulate.py": ["tests/test_simulate.py"],
-    "pipeline.py": ["tests/test_pipeline.py"],
-    "backtest.py": ["tests/test_pipeline.py"],
+    "pipeline.py": ["tests/test_pipeline.py", "tests/test_mutation_survivors.py"],
+    "backtest.py": ["tests/test_pipeline.py", "tests/test_mutation_survivors.py"],
     "numcheck.py": ["tests/test_docs.py"],
 }
 

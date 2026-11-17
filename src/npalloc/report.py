@@ -464,6 +464,7 @@ def render_readme(res: dict) -> str:
         "- Prices, salvage value, DC value and shipping costs in the allocation model are assumptions; the sensitivity table shows how much the conclusions move with them, "
         "and the two-stage gain mostly disappears when DC stock is not worth more than stranded stock.",
         "- The case-pack size is a proxy (the most frequent order quantity inside the horizon); it is used for rounding only, never as a forecasting feature.",
+        "- The launch price is read from the invoices of week 1 as a stand-in for a list price that would be known before launch; it is a forecasting feature.",
         "- A product first sold after the burn-in may still be a relaunch from before the data window; the three re-code checks cannot see that. The successor check (L5) found no case, which may also mean its thresholds are too strict.",
         "- Model selection was changed once after seeing held-out results: random-fold cross-validation chose a model that failed out of time, so the rule now uses forward-chaining validation, "
         "and calendar features were removed from the default boosting model. Both earlier choices are kept in the results as comparisons. The held-out launches are therefore not untouched by design decisions.",
