@@ -7,63 +7,12 @@
   "final_run": {
     "control_killed": true,
     "date": "2026-11-17",
-    "killed": 76,
+    "killed": 86,
     "mutants": 86,
-    "seconds": 1477,
-    "survived": 10,
-    "survivors": [
-      {
-        "file": "cleaning.py",
-        "id": "c3_same_timestamp",
-        "rule": "C3"
-      },
-      {
-        "file": "launches.py",
-        "id": "l5_jaccard_edge",
-        "rule": "L5"
-      },
-      {
-        "file": "launches.py",
-        "id": "l5_no_upper_gap",
-        "rule": "L5"
-      },
-      {
-        "file": "bass.py",
-        "id": "p3_cdf_ratio",
-        "rule": "P3"
-      },
-      {
-        "file": "metrics.py",
-        "id": "m1_wape_denominator",
-        "rule": "M1"
-      },
-      {
-        "file": "allocation.py",
-        "id": "a4_keep_tie",
-        "rule": "A4"
-      },
-      {
-        "file": "allocation.py",
-        "id": "a5_donor_tie",
-        "rule": "A5"
-      },
-      {
-        "file": "allocation.py",
-        "id": "a5_destination_tie",
-        "rule": "A5"
-      },
-      {
-        "file": "pipeline.py",
-        "id": "post_selection_on_all_rows",
-        "rule": "P2"
-      },
-      {
-        "file": "backtest.py",
-        "id": "b1_zero_stock",
-        "rule": "B1"
-      }
-    ],
-    "tests_passed": 122
+    "seconds": 428,
+    "survived": 0,
+    "survivors": [],
+    "tests_passed": 131
   },
   "first_run": {
     "control_killed": true,
@@ -126,6 +75,6 @@
     ],
     "tests_passed": 122
   },
-  "tests_passed": 122,
+  "tests_passed": 131,
   "tool": "scripts/mutate.py (hand-written mutants in scripts/mutants.py; a mutant is killed when pytest fails)"
 }
